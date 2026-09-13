@@ -220,6 +220,7 @@ export default function Dashboard() {
   )
   const runState: RunState = starting ? 'starting' : running ? 'streaming' : error ? 'error'
     : result ? (result.ok ? 'completed' : 'rolled_back') : 'idle'
+  const allSimulated = apps.length > 0 && apps.every((a) => a.mode === 'SIMULATED') && toolCount > 0
   const telegramLive = apps.some((a) => a.app === 'telegram' && a.mode === 'LIVE')
   const awaitingHuman = steps.some((s) => s.id === 'approval' && s.status === 'running')
   const hint = telegramLive && running
@@ -263,6 +264,23 @@ export default function Dashboard() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {apiUp && allSimulated && (
+          <div className="mx-4 mt-4 rounded-xl border border-signal-live/25 bg-signal-live/[0.05] px-4 py-3 sm:mx-6">
+            <p className="text-[13px] leading-relaxed text-slate-300">
+              <span className="font-semibold text-signal-live">Public demo - all three apps are simulated.</span>{' '}
+              A shared URL cannot run the live path: a real run posts an approval card to one
+              specific person&apos;s Telegram and waits for <em>them</em> to press a button, and it moves
+              real money. So this deployment ships without credentials and says so, rather than
+              pretending. Every gate decision below is genuine - retries, rollbacks and the hash
+              chain are the same code that runs live.
+            </p>
+            <p className="mt-1.5 text-[12px] text-slate-500">
+              To see it against the real GitHub, Telegram and Stripe APIs, add three tokens locally -
+              README §5, about five minutes.
+            </p>
+          </div>
+        )}
 
         {apiUp === false && (
           <div className="mx-4 mt-4 rounded-xl border border-signal-fail/25 bg-signal-fail/[0.06] px-4 py-3 text-[13px] text-slate-300 sm:mx-6">

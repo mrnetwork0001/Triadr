@@ -89,10 +89,14 @@ export function SidebarContent({ apps, apiUp, toolCount, activeId, running, onNa
                   <span className="block text-[10px] text-slate-600">App #{i + 1} · {meta.role}</span>
                 </span>
                 <span
-                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${live ? 'bg-signal-ok' : 'bg-slate-600'}`}
-                  title={live ? 'live' : 'simulated'}
-                  aria-label={live ? 'live' : 'simulated'}
-                />
+                  className={`chip shrink-0 ${
+                    live
+                      ? 'border-signal-ok/30 bg-signal-ok/10 text-signal-ok'
+                      : 'border-white/10 bg-white/[0.04] text-slate-500'
+                  }`}
+                >
+                  {live ? 'live' : 'sim'}
+                </span>
               </li>
             )
           })}
