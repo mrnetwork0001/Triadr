@@ -1,14 +1,9 @@
 'use client'
 
-import { Github, Send, CreditCard, Radio, FlaskConical } from 'lucide-react'
+import { Radio, FlaskConical } from 'lucide-react'
+import { BrandLogo } from '@/components/BrandLogo'
 import type { AppStatus, RouteHealth } from '@/lib/types'
 import { APP_META, Chip } from './primitives'
-
-const ICONS: Record<string, typeof Github> = {
-  github: Github,
-  telegram: Send,
-  stripe: CreditCard,
-}
 
 const BREAKER_TONE: Record<string, string> = {
   CLOSED: 'bg-signal-ok',
@@ -32,7 +27,6 @@ export function AppRail({
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {apps.map((app, index) => {
-        const Icon = ICONS[app.app] ?? Radio
         const meta = APP_META[app.app] ?? { label: app.app, role: '', accent: 'text-slate-200' }
         const endpoints = routes[app.app] ?? []
         const isActive = activeApp === app.app
@@ -44,9 +38,7 @@ export function AppRail({
             }`}
           >
             <div className="flex items-start gap-3 px-4 pb-3 pt-3.5">
-              <div className="mt-0.5 rounded-lg border border-white/10 bg-white/[0.04] p-2">
-                <Icon className={`h-4 w-4 ${meta.accent}`} aria-hidden />
-              </div>
+              <BrandLogo app={app.app} size={36} className="mt-0.5" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="truncate text-sm font-semibold text-slate-100">{meta.label}</h3>
