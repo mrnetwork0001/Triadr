@@ -12,13 +12,6 @@ body {
   color: #e2e8f0;
 }
 
-body {
-  /* A faint dual-tone field so the dark surface reads as depth, not a void. */
-  background-image:
-    radial-gradient(900px 500px at 12% -8%, rgba(56, 189, 248, 0.09), transparent 60%),
-    radial-gradient(800px 500px at 92% 0%, rgba(192, 132, 252, 0.07), transparent 62%);
-  background-attachment: fixed;
-}
 
 ::-webkit-scrollbar {
   width: 9px;
@@ -139,14 +132,148 @@ body {
   animation-play-state: paused;
 }
 
-/* Footer: a faint blueprint grid behind the columns. */
-.footer-grid {
-  background-color: #07080c;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 48px 48px;
-  background-position: center top;
+/* Cards lift slightly and warm their edge on hover - one rule, used everywhere. */
+.card-lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 18px 48px -24px rgba(56, 189, 248, 0.35);
+}
+
+/* A gradient hairline between sections. */
+.section-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12) 20%, rgba(255, 255, 255, 0.12) 80%, transparent);
+}
+
+/*
+ * Landing backdrop.
+ * Aurora blobs: large, heavily blurred radial gradients that drift on very slow,
+ * mismatched cycles so the composition never visibly repeats. Opacities are low
+ * on purpose - the page should feel lit, not painted.
+ */
+.aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+  opacity: 0.55;
+}
+.aurora-a {
+  width: 62vw;
+  height: 62vw;
+  left: -14vw;
+  top: -22vw;
+  background: radial-gradient(closest-side, rgba(56, 189, 248, 0.35), rgba(56, 189, 248, 0));
+  animation: aurora-a 34s ease-in-out infinite alternate;
+}
+.aurora-b {
+  width: 54vw;
+  height: 54vw;
+  right: -18vw;
+  top: 8vh;
+  background: radial-gradient(closest-side, rgba(192, 132, 252, 0.28), rgba(192, 132, 252, 0));
+  animation: aurora-b 41s ease-in-out infinite alternate;
+}
+.aurora-c {
+  width: 48vw;
+  height: 48vw;
+  left: 28vw;
+  bottom: -26vw;
+  background: radial-gradient(closest-side, rgba(52, 211, 153, 0.22), rgba(52, 211, 153, 0));
+  animation: aurora-c 47s ease-in-out infinite alternate;
+}
+@keyframes aurora-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(12vw, 10vh, 0) scale(1.15); }
+}
+@keyframes aurora-b {
+  from { transform: translate3d(0, 0, 0) scale(1.05); }
+  to   { transform: translate3d(-10vw, 14vh, 0) scale(0.92); }
+}
+@keyframes aurora-c {
+  from { transform: translate3d(0, 0, 0) scale(0.95); }
+  to   { transform: translate3d(-14vw, -8vh, 0) scale(1.12); }
+}
+
+/* Dot grid, strongest near the top where the hero sits, gone by the fold. */
+.dotgrid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1.2px);
+  background-size: 28px 28px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.55) 40%, rgba(0, 0, 0, 0.55) 100%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.55) 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Pointer spotlight - a soft disc that eases toward the cursor (fine pointers only). */
+.spotlight {
+  width: 720px;
+  height: 720px;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(56, 189, 248, 0.09), transparent);
+  will-change: transform;
+}
+
+/* Per-section ambient glow: one blob per section, alternating sides, drifting slowly. */
+.section-glow {
+  position: absolute;
+  width: 48vw;
+  height: 48vw;
+  max-width: 760px;
+  max-height: 760px;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.7;
+  pointer-events: none;
+  will-change: transform;
+  animation: glow-drift 30s ease-in-out infinite alternate;
+}
+.section-glow.left { left: -20vw; top: -12vw; }
+.section-glow.right { right: -20vw; bottom: -16vw; animation-delay: -12s; }
+@keyframes glow-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(7vw, 5vw, 0) scale(1.14); }
+}
+
+/* Section divider with a pulse sweeping through it, so every boundary is alive. */
+.signal-rule {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), rgba(56, 189, 248, 0.9), rgba(255, 255, 255, 0.5), transparent) no-repeat,
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12) 20%, rgba(255, 255, 255, 0.12) 80%, transparent);
+  background-size: 260px 1px, 100% 1px;
+  animation: signal-sweep 16s linear infinite;
+}
+
+/* Grain: an SVG turbulence tile at very low opacity gives the flat colour some tooth. */
+.grain {
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+}
+
+/* Hero signal lines: a hairline with a bright segment sweeping left to right. */
+.signal-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.75), rgba(255, 255, 255, 0.9), rgba(56, 189, 248, 0.75), transparent) no-repeat,
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07) 20%, rgba(255, 255, 255, 0.07) 80%, transparent);
+  background-size: 220px 1px, 100% 1px;
+  animation-name: signal-sweep;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes signal-sweep {
+  from { background-position: -240px 0, 0 0; }
+  to   { background-position: calc(100% + 240px) 0, 0 0; }
 }
 
 /* Respect users who have asked the OS to reduce motion. */
