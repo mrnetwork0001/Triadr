@@ -18,6 +18,14 @@ whole workflow back. Every decision lands on a SHA-256 hash chain you can verify
 
 **The guarantee:** a run ends fully applied or fully reverted. Never half-executed.
 
+## Team
+
+| Member | Email |
+|---|---|
+| MrNetwork (Ifeanyichukwu Onwo) | mrnetwork0001@gmail.com |
+
+Solo entry. Repository: https://github.com/mrnetwork0001/Triadr
+
 ---
 
 ## Contents
