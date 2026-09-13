@@ -1,9 +1,7 @@
 'use client'
 
-import { CreditCard, Github, Send } from 'lucide-react'
+import { BrandLogo } from '@/components/BrandLogo'
 import { GATE_FEED, type GateCard } from '@/lib/landing-content'
-
-const APP_ICONS = { github: Github, telegram: Send, stripe: CreditCard } as const
 
 /** Verdicts read at a glance: green applied, amber healed/faulted, purple undone. */
 const VERDICT_STYLE: Record<string, { chip: string; dot: string; label: string }> = {
@@ -29,14 +27,13 @@ function styleFor(verdict: string) {
 }
 
 function Card({ card }: { card: GateCard }) {
-  const Icon = APP_ICONS[card.app]
   const style = styleFor(card.verdict)
   const isFault = !VERDICT_STYLE[card.verdict]
 
   return (
     <article className="rounded-lg border border-white/[0.07] bg-ink-900/80 px-3 py-2.5 backdrop-blur-sm">
       <div className="flex items-center gap-2">
-        <Icon className="h-3 w-3 shrink-0 text-slate-500" aria-hidden />
+        <BrandLogo app={card.app} size={14} className="rounded-[30%]" />
         <code className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-300">{card.tool}</code>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${style.dot}`} aria-hidden />
       </div>
