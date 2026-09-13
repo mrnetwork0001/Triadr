@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import queue
 import threading
 import time
@@ -47,9 +48,13 @@ app = FastAPI(
     version="1.0.0",
     description="Self-Healing Multi-App Agent & Reliability Engine - GitHub + Telegram + Stripe",
 )
+# The front end normally proxies /api/* server-side (see next.config.js), so CORS is
+# not on the critical path. It is opened anyway for deployments where the browser
+# talks to this API directly - set TRIADR_CORS_ORIGINS to a comma-separated list.
+_CORS = [o.strip() for o in os.environ.get("TRIADR_CORS_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=_CORS or ["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
