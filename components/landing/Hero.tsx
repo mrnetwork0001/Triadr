@@ -8,12 +8,14 @@ import { CAMPAIGN, DEFAULT_INSTRUCTION } from '@/lib/landing-content'
 import type { AppStatus } from '@/lib/types'
 import { LaunchButton } from './chrome'
 import { GateMarquee } from './GateMarquee'
+import { CountUp, Stagger, itemVariants } from './motion'
+import { SignalLines } from './Backdrop'
 
 const HEADLINE_STATS = [
-  { value: CAMPAIGN.faultsAbsorbed.toString(), label: 'faults absorbed', tone: 'text-signal-heal' },
-  { value: CAMPAIGN.stepsSelfHealed.toString(), label: 'steps self-healed', tone: 'text-signal-ok' },
-  { value: CAMPAIGN.halfExecuted.toString(), label: 'left half-executed', tone: 'text-slate-50' },
-  { value: `${CAMPAIGN.chainsValid}/${CAMPAIGN.runs}`, label: 'audit chains verify', tone: 'text-signal-live' },
+  { value: CAMPAIGN.faultsAbsorbed, suffix: '', label: 'faults absorbed', tone: 'text-signal-heal' },
+  { value: CAMPAIGN.stepsSelfHealed, suffix: '', label: 'steps self-healed', tone: 'text-signal-ok' },
+  { value: CAMPAIGN.halfExecuted, suffix: '', label: 'left half-executed', tone: 'text-slate-50' },
+  { value: CAMPAIGN.chainsValid, suffix: `/${CAMPAIGN.runs}`, label: 'audit chains verify', tone: 'text-signal-live' },
 ]
 
 export function Hero() {
@@ -40,11 +42,12 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
-      {/* Horizon glow, kept behind content and non-interactive. */}
+      {/* Horizon glow and signal lines, kept behind content and non-interactive. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[560px] bg-[radial-gradient(760px_340px_at_35%_-10%,rgba(56,189,248,0.16),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[560px] bg-[radial-gradient(760px_340px_at_35%_-10%,rgba(56,189,248,0.14),transparent_70%)]"
       />
+      <SignalLines />
 
       <div className="shell relative">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12">
@@ -112,24 +115,24 @@ export function Hero() {
           <p className="mb-3 text-[12px] text-slate-500">
             Across {CAMPAIGN.runs} runs at a {CAMPAIGN.faultRate} first-attempt failure rate:
           </p>
-          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-4" gap={0.1}>
             {HEADLINE_STATS.map((stat) => (
-              <div
+              <motion.div
                 key={stat.label}
-                className="min-w-0 rounded-xl border border-white/[0.07] bg-ink-900/70 px-4 py-3.5"
+                variants={itemVariants}
+              whileHover={{ y: -3 }}
+                className="card-lift min-w-0 rounded-2xl border border-white/[0.07] bg-ink-900/70 px-5 py-4"
               >
-                <dt className="sr-only">{stat.label}</dt>
-                <dd>
-                  <span className={`block font-mono text-[30px] font-semibold tabular-nums leading-none ${stat.tone}`}>
-                    {stat.value}
-                  </span>
-                  <span className="mt-2 block text-[11px] uppercase tracking-[0.12em] text-slate-500">
-                    {stat.label}
-                  </span>
-                </dd>
-              </div>
+                <span className="sr-only">{stat.label}</span>
+                <span className={`block font-mono text-[32px] font-semibold tabular-nums leading-none ${stat.tone}`}>
+                  <CountUp value={stat.value} suffix={stat.suffix} duration={1.6} />
+                </span>
+                <span className="mt-2.5 block text-[11px] uppercase tracking-[0.12em] text-slate-500">
+                  {stat.label}
+                </span>
+              </motion.div>
             ))}
-          </dl>
+          </Stagger>
           <p className="mt-3 font-mono text-[11px] text-slate-600">reproduce · {CAMPAIGN.command}</p>
         </motion.div>
 
