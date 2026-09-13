@@ -369,6 +369,16 @@ class TriadrOrchestrator:
                 f"0 steps left half-executed.{money}"
             )
         undone = sum(1 for c in compensations if c["ok"])
+        failed = len(compensations) - undone
+        # Only claim a clean rollback when every compensation actually succeeded.
+        # Saying "no partial state remains" after a failed reversal would be the
+        # exact dishonesty this engine exists to prevent.
+        if failed:
+            return (
+                f"Run stopped on an unrecoverable step. Rollback INCOMPLETE: {undone}/{len(compensations)} "
+                f"side effect(s) reversed, {failed} could not be undone and need manual attention "
+                f"(see the audit log). {m.faults_absorbed} fault(s) absorbed before giving up."
+            )
         return (
             f"Run stopped on an unrecoverable step and rolled back cleanly: {undone}/{len(compensations)} "
             f"side effect(s) reversed. {m.faults_absorbed} fault(s) absorbed before giving up. "
