@@ -1,0 +1,27 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# node / next
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# triadr run artifacts
+.triadr/
+*.jsonl
+
+# env & secrets - never commit credentials
+.env
+.env.local
+.env*.local
+
+# os
+.DS_Store
+
+.pytest_cache/

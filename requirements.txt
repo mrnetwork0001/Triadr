@@ -1,0 +1,9 @@
+# The reliability engine itself (risk_gate, agents, mcp_servers) is stdlib-only
+# and needs none of these - `python3 main.py` works on a bare Python 3.11+.
+# These are for the FastAPI control plane that backs the Next.js visualiser.
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+
+# Tests
+pytest>=8.0.0
