@@ -1,23 +1,25 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, CircleDot, GitBranch, ListTree, Radio, ScrollText } from 'lucide-react'
-import { TriadrMark } from '@/components/TriadrMark'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ListTree, Radio, ScrollText } from 'lucide-react'
 import { AppRail } from '@/components/AppRail'
 import { AuditChain } from '@/components/AuditChain'
-import { ControlBar } from '@/components/ControlBar'
 import { EventStream } from '@/components/EventStream'
 import { ExecutionTree } from '@/components/ExecutionTree'
 import { ReliabilityPanel } from '@/components/ReliabilityPanel'
 import { Chip, Panel } from '@/components/primitives'
+import { CommandBar } from '@/components/dashboard/CommandBar'
+import { KpiStrip } from '@/components/dashboard/KpiStrip'
+import { DASHBOARD_SECTIONS, Sidebar, SidebarContent, type SectionId } from '@/components/dashboard/Sidebar'
+import { TopBar, type RunState } from '@/components/dashboard/TopBar'
 import { fetchApps, fetchAudit, fetchRun, startRun, streamRun } from '@/lib/api'
 import type {
   AppStatus, AuditEntry, Compensation, RouteHealth, RunResult, Scenario, StepView, TriadrEvent,
 } from '@/lib/types'
 
 const DEFAULT_INSTRUCTION =
-  'Audit PR #42 in mrnetwork/triadr, get team sign-off in #eng-approvals, then release $2,500.00 USD from escrow to acct_1TriadrContractor'
+  'Audit PR #42 in mrnetwork/triadr, get team sign-off on Telegram, then release $2,500.00 USD from escrow to acct_1TriadrContractor'
 
 const EMPTY_APPS: AppStatus[] = [
   { app: 'github', mode: 'SIMULATED', tools: 0, calls: 0, credentials_required: [], credentials_missing: [], connected: false },
@@ -44,6 +46,21 @@ export default function Dashboard() {
   const [entries, setEntries] = useState<AuditEntry[]>([])
   const [auditCount, setAuditCount] = useState(0)
   const [activeApp, setActiveApp] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<SectionId>('console')
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Escape closes the mobile sheet; growing past the breakpoint discards it.
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    const onResize = () => window.innerWidth >= 1024 && setMenuOpen(false)
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [menuOpen])
 
   const unsubscribe = useRef<(() => void) | null>(null)
 
@@ -69,6 +86,31 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => () => unsubscribe.current?.(), [])
+
+  // -- scroll spy for the sidebar -----------------------------------------
+  useEffect(() => {
+    let frame = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        let current: SectionId = 'console'
+        for (const { id } of DASHBOARD_SECTIONS) {
+          const el = document.getElementById(id)
+          if (el && el.getBoundingClientRect().top <= 160) current = id
+        }
+        // At the very bottom the last section may never cross the line - light it anyway.
+        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
+        if (atBottom && window.scrollY > 0) current = DASHBOARD_SECTIONS[DASHBOARD_SECTIONS.length - 1].id
+        setActiveId(current)
+      })
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
+    }
+  }, [])
 
   // -- live event reducer -------------------------------------------------
   const apply = useCallback((e: TriadrEvent) => {
@@ -170,136 +212,138 @@ export default function Dashboard() {
     setActiveApp(null)
   }, [])
 
+  // -- derived view state -------------------------------------------------
   const routes: Record<string, RouteHealth[]> = useMemo(() => result?.gate.routes ?? {}, [result])
   const liveApps = useMemo(
     () => apps.map((a) => ({ ...a, calls: steps.filter((s) => s.app === a.app && s.status !== 'pending').length || a.calls })),
     [apps, steps],
   )
+  const runState: RunState = starting ? 'starting' : running ? 'streaming' : error ? 'error'
+    : result ? (result.ok ? 'completed' : 'rolled_back') : 'idle'
+  const telegramLive = apps.some((a) => a.app === 'telegram' && a.mode === 'LIVE')
+  const awaitingHuman = steps.some((s) => s.id === 'approval' && s.status === 'running')
+  const hint = telegramLive && running
+    ? awaitingHuman
+      ? 'The agent is waiting for a human: press Approve on the card in Telegram.'
+      : 'An approval card will arrive in Telegram - press Approve when it does.'
+    : null
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1400px] px-4 py-6 sm:px-6">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <Link
-              href="/"
-              className="flex items-center gap-2.5 rounded-md transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-live/50"
-            >
-              <TriadrMark size={32} />
-              <h1 className="text-xl font-semibold tracking-tight text-slate-50">Triadr</h1>
-            </Link>
-            <Chip tone="live">reliability engine</Chip>
-          </div>
-          <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-slate-500">
-            One multi-step agent across three external apps, behind a gate that retries, reroutes,
-            deduplicates and rolls back - so a workflow is never left half-executed.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-slate-400 transition-colors hover:bg-white/[0.07] hover:text-slate-200"
-          >
-            <ArrowLeft className="h-3 w-3" aria-hidden />
-            Overview
-          </Link>
-          <Chip tone={apiUp === false ? 'fail' : apiUp ? 'ok' : 'idle'}>
-            <CircleDot className="h-2.5 w-2.5" aria-hidden />
-            {apiUp === false ? 'api offline' : apiUp ? 'api connected' : 'connecting'}
-          </Chip>
-          <Chip tone="idle">
-            <GitBranch className="h-2.5 w-2.5" aria-hidden />
-            {toolCount} mcp tools
-          </Chip>
-        </div>
-      </header>
+    <div className="flex min-h-screen">
+      <Sidebar apps={liveApps} apiUp={apiUp} toolCount={toolCount} activeId={activeId} running={running} />
 
-      {apiUp === false && (
-        <div className="mb-4 rounded-lg border border-signal-fail/25 bg-signal-fail/[0.06] px-4 py-3 text-[13px] text-slate-300">
-          The control plane is not reachable. Start it with{' '}
-          <code className="font-mono text-signal-fail">uvicorn server:app --port 8000</code>, then reload.
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <AppRail apps={liveApps} routes={routes} activeApp={activeApp} />
-
-        <ControlBar
-          instruction={instruction}
-          onInstructionChange={setInstruction}
-          scenario={scenario}
-          onScenarioChange={setScenario}
-          scenarios={scenarios}
-          running={running}
-          onRun={run}
-          onStop={stop}
-          disabled={starting || apiUp === false}
+      <div className="min-w-0 flex-1">
+        <TopBar
+          apiUp={apiUp}
+          toolCount={toolCount}
+          runState={runState}
+          runId={result?.run_id ?? null}
+          menuOpen={menuOpen}
+          onToggleMenu={() => setMenuOpen((v) => !v)}
         />
 
-        {error && (
-          <p className="rounded-lg border border-signal-fail/25 bg-signal-fail/[0.06] px-4 py-2.5 text-[13px] text-signal-fail">
-            {error}
-          </p>
-        )}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              id="dashboard-menu"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="fixed inset-x-0 top-[72px] z-40 flex max-h-[calc(100vh-72px)] flex-col overflow-y-auto border-b border-white/[0.08] bg-ink-950/95 backdrop-blur-md lg:hidden"
+            >
+              <SidebarContent
+                apps={liveApps}
+                apiUp={apiUp}
+                toolCount={toolCount}
+                activeId={activeId}
+                running={running}
+                onNavigate={() => setMenuOpen(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {result && (
-          <div
-            className={`rounded-xl border px-4 py-3 ${
-              result.ok ? 'border-signal-ok/25 bg-signal-ok/[0.06]' : 'border-signal-undo/25 bg-signal-undo/[0.06]'
-            }`}
-          >
-            <p className="text-[13px] leading-relaxed text-slate-200">{result.summary}</p>
-            <p className="mt-1 font-mono text-[11px] text-slate-500">
-              {result.run_id} · {result.duration_ms.toFixed(0)}ms wall clock
-            </p>
+        {apiUp === false && (
+          <div className="mx-4 mt-4 rounded-xl border border-signal-fail/25 bg-signal-fail/[0.06] px-4 py-3 text-[13px] text-slate-300 sm:mx-6">
+            The control plane is not reachable. Start it with{' '}
+            <code className="font-mono text-signal-fail">uvicorn server:app --port 8000</code>, then reload.
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <Panel
-            title="Execution tree"
-            right={
-              running ? (
-                <Chip tone="live">
-                  <Radio className="h-2.5 w-2.5 animate-pulse-dot" aria-hidden /> streaming
-                </Chip>
-              ) : (
-                <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                  <ListTree className="h-3 w-3" aria-hidden /> {steps.length} steps
-                </span>
-              )
-            }
-          >
-            <ExecutionTree steps={steps} compensations={compensations} />
-          </Panel>
+        <main className="mx-auto w-full max-w-[1320px] space-y-4 px-4 py-5 sm:px-6">
+          <CommandBar
+            instruction={instruction}
+            onInstructionChange={setInstruction}
+            scenario={scenario}
+            onScenarioChange={setScenario}
+            scenarios={scenarios}
+            running={running}
+            starting={starting}
+            disabled={starting || apiUp === false}
+            onRun={run}
+            onStop={stop}
+            hint={hint}
+            error={error}
+            result={result ? { ok: result.ok, summary: result.summary, run_id: result.run_id, duration_ms: result.duration_ms } : null}
+          />
 
-          <Panel title="Reliability">
-            <ReliabilityPanel metrics={result?.gate.metrics ?? null} />
-          </Panel>
-        </div>
+          <KpiStrip metrics={result?.gate.metrics ?? null} running={running} />
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <Panel
-            title="Gate event stream"
-            right={
-              <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                <ScrollText className="h-3 w-3" aria-hidden /> {events.length} events
-              </span>
-            }
-          >
-            <EventStream events={events} />
-          </Panel>
+          <AppRail apps={liveApps} routes={routes} activeApp={activeApp} />
 
-          <Panel title="Cryptographic audit log">
-            <AuditChain attestation={result?.attestation ?? null} entries={entries} liveCount={auditCount} />
-          </Panel>
-        </div>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <div id="execution" className="min-w-0 scroll-mt-24">
+              <Panel
+                title="Execution tree"
+                right={
+                  running ? (
+                    <Chip tone="live">
+                      <Radio className="h-2.5 w-2.5 animate-pulse-dot" aria-hidden /> streaming
+                    </Chip>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                      <ListTree className="h-3 w-3" aria-hidden /> {steps.length} steps
+                    </span>
+                  )
+                }
+              >
+                <ExecutionTree steps={steps} compensations={compensations} />
+              </Panel>
+            </div>
+            <div id="reliability" className="min-w-0 scroll-mt-24">
+              <Panel title="Reliability">
+                <ReliabilityPanel metrics={result?.gate.metrics ?? null} />
+              </Panel>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <div id="events" className="min-w-0 scroll-mt-24">
+              <Panel
+                title="Gate event stream"
+                right={
+                  <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                    <ScrollText className="h-3 w-3" aria-hidden /> {events.length} events
+                  </span>
+                }
+              >
+                <EventStream events={events} />
+              </Panel>
+            </div>
+            <div id="audit" className="min-w-0 scroll-mt-24">
+              <Panel title="Cryptographic audit log">
+                <AuditChain attestation={result?.attestation ?? null} entries={entries} liveCount={auditCount} />
+              </Panel>
+            </div>
+          </div>
+
+          <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-4 text-[11px] text-slate-600">
+            <span>Triadr - GitHub · Telegram · Stripe, behind one self-healing reliability gate.</span>
+            <span className="font-mono">Apache 2.0</span>
+          </footer>
+        </main>
       </div>
-
-      <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-4 text-[11px] text-slate-600">
-        <span>Triadr - GitHub · Telegram · Stripe, behind one self-healing reliability gate.</span>
-        <span className="font-mono">Apache 2.0</span>
-      </footer>
-    </main>
+    </div>
   )
 }
