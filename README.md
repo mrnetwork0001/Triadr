@@ -17,6 +17,14 @@ whole workflow back. Every decision lands on a SHA-256 hash chain you can verify
 
 **The guarantee:** a run ends fully applied or fully reverted. Never half-executed.
 
+## Demo video
+
+**[Watch the 2-minute demo](https://youtu.be/It-J686I8NI)** - the whole workflow running against
+the real GitHub, Telegram and Stripe APIs, including a live approval pressed on a phone, a real
+payout, a fault storm the gate heals, and a rollback that undoes itself.
+
+[![Watch the demo](https://img.youtube.com/vi/It-J686I8NI/maxresdefault.jpg)](https://youtu.be/It-J686I8NI)
+
 ## Live demo
 
 | | |
@@ -24,6 +32,7 @@ whole workflow back. Every decision lands on a SHA-256 hash chain you can verify
 | **Dashboard** | http://38.49.213.208:8791/dashboard |
 | **Landing page** | http://38.49.213.208:8791 |
 | **API** | http://38.49.213.208:8790/api/health |
+| **Demo video** | https://youtu.be/It-J686I8NI (2 min) |
 
 The public deployment is deliberately **credential-free**: all three apps run in
 SIMULATED mode and the UI says so on every card. That is not a limitation of the
@@ -45,6 +54,7 @@ Solo entry. Repository: https://github.com/mrnetwork0001/Triadr
 
 ## Contents
 
+0. [Demo video](#demo-video) - 2 minutes, start here
 1. [What you will see](#1-what-you-will-see)
 2. [Prerequisites](#2-prerequisites)
 3. [Try it in five minutes - no accounts needed](#3-try-it-in-five-minutes---no-accounts-needed)
@@ -63,7 +73,8 @@ Solo entry. Repository: https://github.com/mrnetwork0001/Triadr
 
 ## 1. What you will see
 
-The workflow Triadr runs, and what can go wrong at each step:
+The fastest way to see it is the [2-minute demo video](https://youtu.be/It-J686I8NI).
+Below is the same workflow in writing, and what can go wrong at each step:
 
 | # | App | Step | If it fails |
 |---|---|---|---|
