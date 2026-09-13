@@ -1,5 +1,8 @@
 # Triadr - Self-Healing Multi-App Agent & Reliability Engine
 
+<img width="2988" height="1716" alt="image" src="https://github.com/user-attachments/assets/dfe3da29-83ed-4c0d-90de-d7710ce3aeb1" />
+
+
 > Built for the **Multi-App AI Agent Hackathon** (`multiappagenthackathon.com`)
 > **Connected apps:** GitHub (code audit) · Telegram (team approval) · Stripe (escrow payout)
 > **Stack:** Model Context Protocol · Python 3.11+ · FastAPI · Next.js 14 · Tailwind CSS
