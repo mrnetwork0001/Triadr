@@ -488,3 +488,25 @@ class TestLiveSaga:
         params = plan_from_instruction(text).params
         assert params == {**params, "repo": "acme/api", "pr_number": 133, "chat_id": -1009876,
                           "contractor": "acct_1Real", "amount": 1.0}
+
+
+class TestCliFlags:
+    """--no-persist must be honoured by every scenario path, including 'all'."""
+
+    def test_run_all_forwards_persist(self, monkeypatch):
+        import main
+
+        seen = []
+        monkeypatch.setattr(main, "run_scenario",
+                            lambda name, instruction, **kw: seen.append((name, kw.get("persist"))) or _Stub())
+        main.run_all("do something", persist=False)
+        assert seen == [("clean", False), ("chaos", False), ("rollback", False), ("rejected", False)]
+
+
+class _Stub:
+    ok = True
+    duration_ms = 1.0
+    steps = []
+    compensations = []
+    gate = {"metrics": {"faults_absorbed": 0, "self_healed": 0}}
+    attestation = {"chain_valid": True}

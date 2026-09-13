@@ -215,3 +215,47 @@ class TestEventStream:
 
         result = TriadrOrchestrator(registry=MCPRegistry(), on_event=explode).run(INSTRUCTION)
         assert result.ok
+
+
+class TestHonestRollbackSummary:
+    """A rollback that did not fully succeed must not be reported as clean."""
+
+    def test_incomplete_rollback_is_reported_as_incomplete(self):
+        o = TriadrOrchestrator(registry=MCPRegistry())
+        summary = o._summarise(
+            ok=False,
+            results=[],
+            compensations=[{"undid": "a", "tool": "t.undo", "ok": True},
+                           {"undid": "b", "tool": "t.undo", "ok": False}],
+            context={},
+        )
+        assert "INCOMPLETE" in summary and "1 could not be undone" in summary
+        assert "No partial state remains" not in summary, "a failed reversal must never claim cleanliness"
+
+    def test_complete_rollback_still_reads_clean(self):
+        o = TriadrOrchestrator(registry=MCPRegistry())
+        summary = o._summarise(
+            ok=False,
+            results=[],
+            compensations=[{"undid": "a", "tool": "t.undo", "ok": True}],
+            context={},
+        )
+        assert "rolled back cleanly" in summary and "No partial state remains" in summary
+
+
+class TestPayoutPayloadMatchesItsKey:
+    """Stripe rejects a reused idempotency key whose parameters changed, so the
+    payout payload must not vary between runs of the same workload."""
+
+    def test_payout_args_are_identical_across_runs(self):
+        a = plan_from_instruction(INSTRUCTION, run_id="run-a")
+        b = plan_from_instruction(INSTRUCTION, run_id="run-b")
+        payout = lambda p: next(s for s in p.steps if s.id == "payout")
+        assert payout(a).idempotency_key == payout(b).idempotency_key
+        assert payout(a).args == payout(b).args, (
+            "same key, different parameters - Stripe would answer 400 on the second run"
+        )
+
+    def test_run_id_is_not_in_the_payment_payload(self):
+        payout = next(s for s in plan_from_instruction(INSTRUCTION, run_id="run-xyz").steps if s.id == "payout")
+        assert "run-xyz" not in str(payout.args)
