@@ -1,4 +1,3 @@
-<img width="2988" height="1716" alt="Triadr" src="https://github.com/user-attachments/assets/dfe3da29-83ed-4c0d-90de-d7710ce3aeb1" />
 
 # Triadr - Self-Healing Multi-App Agent & Reliability Engine
 
