@@ -17,6 +17,22 @@ whole workflow back. Every decision lands on a SHA-256 hash chain you can verify
 
 **The guarantee:** a run ends fully applied or fully reverted. Never half-executed.
 
+## Live demo
+
+| | |
+|---|---|
+| **Dashboard** | http://38.49.213.208:8791/dashboard |
+| **Landing page** | http://38.49.213.208:8791 |
+| **API** | http://38.49.213.208:8790/api/health |
+
+The public deployment is deliberately **credential-free**: all three apps run in
+SIMULATED mode and the UI says so on every card. That is not a limitation of the
+integration - it is the only mode that works for a shared URL, because a live run posts
+an approval card to one specific person's Telegram and waits for *them* to press a
+button. The live runs against the real GitHub, Telegram and Stripe APIs are shown in the
+demo video and reproducible with your own credentials in five minutes - see
+[§5](#5-try-it-live---real-github-telegram-and-stripe).
+
 ## Team
 
 | Member | Email |
