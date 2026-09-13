@@ -156,10 +156,10 @@ def run_scenario(
     return result
 
 
-def run_all(instruction: str) -> None:
+def run_all(instruction: str, persist: bool = True) -> None:
     rows: List[Dict[str, Any]] = []
     for name in ("clean", "chaos", "rollback", "rejected"):
-        result = run_scenario(name, instruction)
+        result = run_scenario(name, instruction, persist=persist)
         m = result.gate["metrics"]
         rows.append({
             "scenario": name,
@@ -237,7 +237,7 @@ def main(argv: Optional[List[str]] = None) -> None:
 
     _banner()
     if args.scenario == "all":
-        run_all(args.instruction)
+        run_all(args.instruction, persist=not args.no_persist)
     else:
         run_scenario(args.scenario, args.instruction, persist=not args.no_persist)
 
