@@ -283,7 +283,12 @@ def plan_from_instruction(
             args={"amount": amount, "currency": currency, "destination": contractor,
                   "idempotency_key": payout_key,
                   "description": f"Triadr escrow release for {repo} PR #{pr}",
-                  "metadata": {"repo": repo, "pr": str(pr), "run": run_id}},
+                  # Deliberately NOT the run id: Stripe rejects a reused idempotency
+                  # key whose parameters changed, and payout_key is derived from the
+                  # workload so it is stable across runs. A payment payload must be a
+                  # pure function of its key. The run id lives in the audit chain,
+                  # which is where a per-run identifier belongs.
+                  "metadata": {"repo": repo, "pr": str(pr)}},
             depends_on=["approval"],
             condition="approval.decision == approved",
             idempotency_key=payout_key,
