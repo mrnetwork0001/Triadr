@@ -165,7 +165,7 @@ dashboard shows percentiles from the viewer's own run.
 
 ### Test suite
 
-`python3 -m pytest tests/ -q` - **164 tests**, covering schema validation edge cases
+`python3 -m pytest tests/ -q` - **171 tests**, covering schema validation edge cases
 (including `True` not satisfying `integer`), breaker state transitions, backoff bounds,
 endpoint deprioritisation, idempotency, drift detection, chaos determinism, the MCP
 JSON-RPC protocol surface, hash-chain tamper evidence, and an 8-seed property test
