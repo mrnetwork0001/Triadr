@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Check, Copy, Plug, Terminal } from 'lucide-react'
 import { Section, LaunchButton } from './chrome'
+import { Reveal, Stagger, itemVariants } from './motion'
 
 function CodeBlock({ label, lines }: { label: string; lines: string[] }) {
   const [copied, setCopied] = useState(false)
@@ -18,8 +20,8 @@ function CodeBlock({ label, lines }: { label: string; lines: string[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/[0.07] bg-black/35">
-      <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-3.5 py-2">
+    <div className="card-lift overflow-hidden rounded-2xl border border-white/[0.07] bg-black/35">
+      <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-2.5">
         <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-slate-500">
           <Terminal className="h-3 w-3" aria-hidden />
           {label}
@@ -33,13 +35,10 @@ function CodeBlock({ label, lines }: { label: string; lines: string[] }) {
           {copied ? 'copied' : 'copy'}
         </button>
       </div>
-      <pre className="overflow-x-auto px-3.5 py-3">
+      <pre className="overflow-x-auto px-4 py-3.5">
         <code className="font-mono text-[12px] leading-relaxed">
           {lines.map((line, i) => (
-            <span
-              key={i}
-              className={`block ${line.startsWith('#') ? 'text-slate-600' : 'text-slate-300'}`}
-            >
+            <span key={i} className={`block ${line.startsWith('#') ? 'text-slate-600' : 'text-slate-300'}`}>
               {line || ' '}
             </span>
           ))}
@@ -49,16 +48,19 @@ function CodeBlock({ label, lines }: { label: string; lines: string[] }) {
   )
 }
 
+/* ── 08 · Run it ──────────────────────────────────────────────────────────── */
+
 export function RunIt() {
   return (
     <Section
       id="run"
+      index="08"
       eyebrow="Run it"
       title="No credentials required"
       lede="Every app falls back to a deterministic simulator and says so, so the full demo runs offline. Adding a token switches that app to LIVE with no code change."
     >
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="min-w-0 space-y-4">
+      <Stagger className="grid gap-4 lg:grid-cols-2" gap={0.1}>
+        <motion.div variants={itemVariants} className="min-w-0 space-y-4">
           <CodeBlock
             label="The agent, end to end"
             lines={[
@@ -83,64 +85,68 @@ export function RunIt() {
               'npm install && npm run dev',
             ]}
           />
-        </div>
+        </motion.div>
 
-        <div className="min-w-0 space-y-4">
-          <article className="panel p-5">
-            <h3 className="flex items-center gap-2 text-[14px] font-semibold text-slate-100">
+        <motion.div variants={itemVariants} className="min-w-0 space-y-4">
+          <article className="card-lift panel rounded-2xl p-6">
+            <h3 className="flex items-center gap-2 text-[15px] font-semibold text-slate-100">
               <Plug className="h-4 w-4 text-signal-live" aria-hidden />
               Use Triadr as an MCP server
             </h3>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-400">
+            <p className="mt-2 text-[13.5px] leading-relaxed text-slate-400">
               All 14 tools are exposed over the standard MCP stdio transport, dependency-free. Every
               call an MCP host makes is gate-supervised, so the host inherits retry, rerouting,
               idempotency and rollback for free.
             </p>
-            <div className="mt-3.5 overflow-x-auto rounded-md border border-white/[0.06] bg-black/30 px-3 py-2">
+            <div className="mt-4 overflow-x-auto rounded-lg border border-white/[0.06] bg-black/30 px-3 py-2">
               <code className="whitespace-nowrap font-mono text-[11.5px] text-slate-400">
                 claude mcp add triadr -- python3 /path/to/Triadr/mcp_servers/stdio_server.py
               </code>
             </div>
           </article>
 
-          <article className="panel flex min-w-0 flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+          <article className="card-lift panel flex min-w-0 flex-col justify-between gap-4 rounded-2xl p-6 sm:flex-row sm:items-center">
             <div>
-              <h3 className="text-[14px] font-semibold text-slate-100">Or just watch it run</h3>
-              <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-slate-400">
+              <h3 className="text-[15px] font-semibold text-slate-100">Or just watch it run</h3>
+              <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-slate-400">
                 The dashboard streams every gate decision live - retries, reroutes, circuit
                 breakers, rollbacks and the hash chain sealing itself as the run completes.
               </p>
             </div>
             <LaunchButton size="lg" />
           </article>
-        </div>
-      </div>
+        </motion.div>
+      </Stagger>
     </Section>
   )
 }
 
 export function ClosingCta() {
   return (
-    <section className="px-4 pb-16 pt-4 sm:px-6">
+    <section className="px-4 pb-20 pt-6 sm:px-6">
       <div className="shell">
-        <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-ink-900/70 px-6 py-12 text-center sm:px-10 sm:py-16">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_240px_at_50%_0%,rgba(56,189,248,0.14),transparent_70%)]"
-          />
-          <div className="relative">
-            <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-50 sm:text-3xl">
-              Watch it heal a workflow in real time
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-pretty text-[15px] leading-relaxed text-slate-400">
-              Pick a scenario, run the agent, and follow every retry, reroute and rollback as it
-              streams - then verify the hash chain yourself.
-            </p>
-            <div className="mt-7 flex justify-center">
-              <LaunchButton size="lg" label="Launch app" />
+        <Reveal>
+          <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-ink-900/70 px-6 py-14 text-center sm:px-10 sm:py-20">
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(640px_260px_at_50%_0%,rgba(56,189,248,0.16),transparent_70%)]"
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <div className="relative">
+              <h2 className="text-balance text-[28px] font-semibold tracking-tight text-slate-50 sm:text-[36px]">
+                Watch it heal a workflow in real time
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-pretty text-[15.5px] leading-relaxed text-slate-400">
+                Pick a scenario, run the agent, and follow every retry, reroute and rollback as it
+                streams - then verify the hash chain yourself.
+              </p>
+              <div className="mt-8 flex justify-center">
+                <LaunchButton size="lg" label="Launch app" />
+              </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
