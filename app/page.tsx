@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Backdrop } from '@/components/landing/Backdrop'
 import { SiteFooter, SiteNav } from '@/components/landing/chrome'
 import { AuditLog, Evidence, Scenarios } from '@/components/landing/Evidence'
 import { Hero } from '@/components/landing/Hero'
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <>
+      <Backdrop />
       <SiteNav />
       <main>
         <Hero />
