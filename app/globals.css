@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #07080c;
+  color: #e2e8f0;
+}
+
+body {
+  /* A faint dual-tone field so the dark surface reads as depth, not a void. */
+  background-image:
+    radial-gradient(900px 500px at 12% -8%, rgba(56, 189, 248, 0.09), transparent 60%),
+    radial-gradient(800px 500px at 92% 0%, rgba(192, 132, 252, 0.07), transparent 62%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #232a3a;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #313a4e;
+}
+
+/*
+ * Landing page shell.
+ *
+ * The side margins are 75% of what a fixed 1180px container would give:
+ *   m  = (100vw - 1180px) / 2          original margin
+ *   m' = 0.75 * m                      requested margin
+ *   w  = 100vw - 2m' = 25vw + 885px    resulting content width
+ *
+ * So the content widens as the viewport grows while keeping a proportional
+ * gutter, and below 1180px the page padding takes over unchanged.
+ */
+.shell {
+  width: 100%;
+  max-width: calc(25vw + 885px);
+  margin-inline: auto;
+}
+
+/*
+ * Header shell.
+ *
+ * The header bar itself stays full-bleed; only its contents pull toward the
+ * edges. The gutter is expressed as padding rather than a max-width so there is
+ * a single number controlling how far the logo sits from the viewport edge -
+ * previously it was a container inset plus a separate px-4/px-6, which made the
+ * effective distance hard to reason about.
+ *
+ * Distance to the logo is 75% of what it was:
+ *   was  = 0.5625 * m + 24px      (container inset + padding), m = (100vw - 1180px)/2
+ *   now  = 0.75 * was = 0.421875 * m + 18px
+ *
+ * Below 1180px the bracket goes negative and the 1rem floor takes over, so
+ * narrow screens keep the same 16px gutter they had before.
+ */
+.shell-wide {
+  width: 100%;
+  padding-inline: max(1rem, calc(0.421875 * (100vw - 1180px) / 2 + 18px));
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-white/[0.07] bg-ink-900/70 backdrop-blur-sm;
+  }
+  .panel-head {
+    @apply flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3;
+  }
+  .panel-title {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider;
+  }
+  .stat-value {
+    @apply font-mono text-2xl font-semibold tabular-nums text-slate-50;
+  }
+  .stat-label {
+    @apply text-[10px] uppercase tracking-[0.12em] text-slate-500;
+  }
+}
+
+/*
+ * Hero marquee.
+ *
+ * Defined here rather than as Tailwind `animation` config entries: config-level
+ * keyframes are dropped from the dev bundle when tailwind.config.ts changes
+ * mid-session, and this keeps the component self-contained for anyone lifting it.
+ *
+ * Each track renders the card list twice, so translating by exactly -50% lands
+ * on an identical frame and the loop has no visible seam.
+ */
+@keyframes triadr-marquee-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes triadr-marquee-down {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.marquee-track {
+  will-change: transform;
+}
+
+.marquee-up {
+  animation: triadr-marquee-up 34s linear infinite;
+}
+
+.marquee-down {
+  animation: triadr-marquee-down 34s linear infinite;
+}
+
+/* Let a reader stop the feed to actually read a card. */
+.marquee-col:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Footer: a faint blueprint grid behind the columns. */
+.footer-grid {
+  background-color: #07080c;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center top;
+}
+
+/* Respect users who have asked the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
