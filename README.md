@@ -23,7 +23,7 @@ whole workflow back. Every decision lands on a SHA-256 hash chain you can verify
 the real GitHub, Telegram and Stripe APIs, including a live approval pressed on a phone, a real
 payout, a fault storm the gate heals, and a rollback that undoes itself.
 
-[![Watch the demo](https://img.youtube.com/vi/It-J686I8NI/maxresdefault.jpg)](https://youtu.be/It-J686I8NI)
+[![Watch the 2-minute Triadr demo](public/brand/demo-thumb.png)](https://youtu.be/It-J686I8NI)
 
 ## Live demo
 
