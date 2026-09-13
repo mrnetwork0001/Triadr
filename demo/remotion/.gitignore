@@ -1,0 +1,12 @@
+out/
+clips/
+vo/
+public/clips/
+public/vo/
+node_modules/
+.env
+src/clips.ts
+src/stats.ts
+src/transcript.ts
+public/logs/
+clips/

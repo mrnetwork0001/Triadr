@@ -29,10 +29,13 @@ payout, a fault storm the gate heals, and a rollback that undoes itself.
 
 | | |
 |---|---|
-| **Dashboard** | http://38.49.213.208:8791/dashboard |
-| **Landing page** | http://38.49.213.208:8791 |
-| **API** | http://38.49.213.208:8790/api/health |
+| **Live app** | **https://usetriadr.vercel.app** |
+| **Run console** | https://usetriadr.vercel.app/dashboard |
 | **Demo video** | https://youtu.be/It-J686I8NI (2 min) |
+| *Direct to the control plane* | http://38.49.213.208:8791 · [API health](http://38.49.213.208:8790/api/health) |
+
+The front end is on Vercel and proxies to a FastAPI control plane on a VPS; the second row
+is that control plane served directly, as a fallback if the proxy is unavailable.
 
 The public deployment is deliberately **credential-free**: all three apps run in
 SIMULATED mode and the UI says so on every card. That is not a limitation of the
@@ -52,8 +55,25 @@ Solo entry. Repository: https://github.com/mrnetwork0001/Triadr
 
 ---
 
+## Submission checklist
+
+Everything the hackathon asks for, and where it is in this repository.
+
+| Required | Where |
+|---|---|
+| **Project overview** - what it is and the problem it solves | Top of this file, and [§1 What you will see](#1-what-you-will-see) |
+| **External apps used** (at least three) | **GitHub** (code audit) · **Telegram** (team approval) · **Stripe** (escrow payout) - [§1](#1-what-you-will-see), tool-by-tool in [§11](#11-triadr-as-an-mcp-server) |
+| **Setup instructions** | [§3 Try it in five minutes](#3-try-it-in-five-minutes---no-accounts-needed) (no accounts needed) and [§5 Try it live](#5-try-it-live---real-github-telegram-and-stripe) (real credentials) |
+| **How reliability was tested** | [§10 Evidence](#10-evidence) - 176 tests, a 40-run fault campaign, measured latency, a verifiable audit chain. Full write-up in [docs/RELIABILITY_BRIEF.md](docs/RELIABILITY_BRIEF.md) |
+| **Two-minute demo video** | [youtu.be/It-J686I8NI](https://youtu.be/It-J686I8NI) - 1:57 |
+| **Judges can access the repo and demo** | This repository is public; the video is on YouTube; the app is live at [usetriadr.vercel.app](https://usetriadr.vercel.app) |
+| **Team** | [§Team](#team) - one person, email included |
+
+---
+
 ## Contents
 
+0. [Submission checklist](#submission-checklist) - every requirement and where it lives
 0. [Demo video](#demo-video) - 2 minutes, start here
 1. [What you will see](#1-what-you-will-see)
 2. [Prerequisites](#2-prerequisites)
@@ -318,7 +338,7 @@ python3 main.py --verify <log.jsonl>   # re-verify a written audit chain
 
 # Evidence
 python3 scripts/campaign.py --runs 40  # regenerates every figure in this README
-python3 -m pytest tests/ -q            # 171 tests
+python3 -m pytest tests/ -q            # 176 tests
 
 # Live readiness
 python3 scripts/live_check.py                 # read-only checks per app
@@ -446,6 +466,21 @@ the complete log.
 
 ## 10. Evidence
 
+*This is the section that answers "how did you test that it works".*
+
+Three independent kinds of evidence, all reproducible from this repository:
+
+1. **A test suite** - 176 tests, run with `python3 -m pytest tests/ -q`.
+2. **A fault campaign** - 40 full workflow runs under a storm that fails ~75% of calls on
+   first attempt, run with `python3 scripts/campaign.py --runs 40`. Result: 356 faults
+   absorbed, **0 runs left half-executed, 0 duplicate payouts, 40/40 audit chains verify**.
+3. **A verifiable audit chain** - every run writes a hash-chained log you can recompute with
+   `python3 main.py --verify .triadr/<run_id>.jsonl`, so the numbers above are checkable
+   rather than asserted.
+
+Plus a live readiness check against the real APIs (`python3 scripts/live_check.py`), which is
+how the video's live run was proven end to end.
+
 Measured on a laptop (`python3 main.py --bench`), never hardcoded:
 
 | Phase | p50 | p99 |
@@ -457,7 +492,7 @@ The landing page re-measures this on every load when the control plane is up, an
 dashboard shows the percentiles from your own run.
 
 ```bash
-python3 -m pytest tests/ -q     # 171 tests
+python3 -m pytest tests/ -q     # 176 tests
 ```
 
 Covering schema validation edge cases, breaker transitions, backoff bounds, endpoint
@@ -516,7 +551,7 @@ Every tool that mutates remote state declares the tool that undoes it - enforced
 | `server.py` | FastAPI control plane with SSE streaming. |
 | `scripts/campaign.py` | Reproduces every figure in this README. |
 | `scripts/live_check.py` | Proves each app against its real API; Stripe test setup. |
-| `tests/` | 171 tests, hermetic. |
+| `tests/` | 176 tests, hermetic. |
 | `app/page.tsx` · `components/landing/` · `lib/landing-content.ts` | Landing page, its sections, motion kit and single-sourced figures. |
 | `app/dashboard/` · `components/dashboard/` · `components/` | Run console: sidebar, top bar, command bar, KPI strip and the live panels. |
 | `public/brand/` · `public/logos/` · `app/icon.png` | Header lockup, vendor logos, favicon. |

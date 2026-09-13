@@ -219,7 +219,7 @@ export function Evidence() {
             <article className="card-lift panel min-w-0 rounded-2xl p-6">
               <h3 className="flex items-center gap-2 text-[15px] font-semibold text-slate-100">
                 <Gauge className="h-4 w-4 text-signal-live" aria-hidden />
-                <span><CountUp value={171} /> tests</span>
+                <span><CountUp value={176} /> tests</span>
               </h3>
               <p className="mt-2 text-[13.5px] leading-relaxed text-slate-400">
                 Schema edge cases (including <code className="font-mono text-slate-300">True</code> not
