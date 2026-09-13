@@ -1,8 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { Github } from 'lucide-react'
-import { TriadrMark } from '@/components/TriadrMark'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Github, Menu, X } from 'lucide-react'
+import { BrandHeader } from '@/components/BrandHeader'
+import { SectionGlow, type GlowTone } from './Backdrop'
+import { DrawLine, Reveal } from './motion'
 
 /** The primary call to action. Repeated at the top, in the hero, and at the foot. */
 export function LaunchButton({
@@ -36,12 +40,26 @@ const NAV = [
 ]
 
 export function SiteNav() {
+  const [open, setOpen] = useState(false)
+
+  // Escape closes the sheet; a resize past the breakpoint discards it.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    const onResize = () => window.innerWidth >= 768 && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [open])
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-ink-950/80 backdrop-blur-md">
-      <div className="shell-wide flex h-14 items-center gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <TriadrMark size={28} />
-          <span className="text-[15px] font-semibold tracking-tight text-slate-50">Triadr</span>
+      <div className="shell-wide relative flex h-16 items-center gap-4">
+        <Link href="/" className="flex shrink-0 items-center" aria-label="Triadr home" onClick={() => setOpen(false)}>
+          <BrandHeader height={45} />
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 md:flex" aria-label="Sections">
@@ -55,7 +73,51 @@ export function SiteNav() {
             </a>
           ))}
         </nav>
+
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          className="ml-auto grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-200 transition-colors hover:bg-white/[0.07] md:hidden"
+        >
+          {open ? <X className="h-4.5 w-4.5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+        </button>
       </div>
+
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            id="mobile-nav"
+            aria-label="Sections"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="absolute inset-x-0 top-full border-b border-white/[0.08] bg-ink-950/95 backdrop-blur-md md:hidden"
+          >
+            <ul className="px-4 py-3">
+              {NAV.map((item) => (
+                <li key={item.href}>
+                  <a
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="block rounded-lg px-3 py-3 text-[15px] text-slate-200 transition-colors hover:bg-white/[0.05]"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+              <li className="mt-2 border-t border-white/[0.07] px-3 pt-4 pb-1">
+                <span onClick={() => setOpen(false)}>
+                  <LaunchButton size="md" />
+                </span>
+              </li>
+            </ul>
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   )
 }
@@ -118,25 +180,16 @@ const SOCIALS = [
 
 export function SiteFooter() {
   return (
-    <footer className="footer-grid relative border-t border-white/[0.08]">
+    <footer className="relative border-t border-white/[0.08] bg-ink-950">
       <div className="shell px-4 py-14 sm:px-6 sm:py-16">
         <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-8">
           {/* ── Brand ─────────────────────────────────────────────── */}
           <div className="max-w-sm">
-            <Link href="/" className="inline-flex items-center gap-4">
-              <TriadrMark size={48} />
-              <span className="h-10 w-px bg-white/15" aria-hidden />
-              <span>
-                <span className="block text-[15px] font-semibold uppercase tracking-[0.32em] text-slate-50">
-                  Triadr
-                </span>
-                <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.28em] text-slate-500">
-                  Reliability engine
-                </span>
-              </span>
+            <Link href="/" className="inline-flex items-center" aria-label="Triadr home">
+              <BrandHeader height={66} />
             </Link>
 
-            <p className="mt-7 text-[15px] leading-relaxed text-slate-400">
+            <p className="mt-6 text-[14px] leading-relaxed text-slate-400">
               A self-healing multi-step agent across GitHub, Telegram and Stripe. Every side
               effect passes a gate that retries, reroutes, deduplicates and rolls back - and
               every decision lands on a hash chain you can verify yourself.
@@ -162,10 +215,10 @@ export function SiteFooter() {
           {/* ── Link columns ───────────────────────────────────────── */}
           {FOOTER_COLUMNS.map((column) => (
             <nav key={column.heading} aria-label={column.heading}>
-              <h3 className="font-mono text-[11px] uppercase tracking-[0.28em] text-signal-heal">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-signal-live">
                 {column.heading}
               </h3>
-              <ul className="mt-6 space-y-3.5">
+              <ul className="mt-3 space-y-1">
                 {column.links.map((link) => (
                   <li key={link.label}>
                     {link.external ? (
@@ -173,14 +226,14 @@ export function SiteFooter() {
                         href={link.href}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-mono text-[15px] text-slate-300 transition-colors hover:text-slate-50"
+                        className="text-[13.5px] text-slate-400 transition-colors hover:text-slate-100"
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         href={link.href}
-                        className="font-mono text-[15px] text-slate-300 transition-colors hover:text-slate-50"
+                        className="text-[13.5px] text-slate-400 transition-colors hover:text-slate-100"
                       >
                         {link.label}
                       </Link>
@@ -197,37 +250,50 @@ export function SiteFooter() {
   )
 }
 
-/** Consistent section wrapper: anchor target, eyebrow, heading, lede. */
+/** Consistent section wrapper: numbered anchor target, eyebrow, heading, lede - all revealed on scroll. */
+const TONES: GlowTone[] = ['purple', 'sky', 'green', 'amber', 'sky', 'purple', 'amber', 'green']
+
 export function Section({
   id,
+  index,
   eyebrow,
   title,
   lede,
   children,
   className = '',
+  glow,
 }: {
   id?: string
+  index?: string
   eyebrow?: string
   title: string
   lede?: string
   children: React.ReactNode
   className?: string
+  glow?: GlowTone
 }) {
+  const n = Number.parseInt(index ?? '1', 10) || 1
+  const tone = glow ?? TONES[(n - 1) % TONES.length]
+  const side = n % 2 === 0 ? 'right' : 'left'
   return (
-    <section id={id} className={`scroll-mt-20 px-4 py-14 sm:px-6 sm:py-16 ${className}`}>
-      <div className="shell">
-        <div className="max-w-3xl">
-          {eyebrow && (
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-signal-live">
-              {eyebrow}
-            </p>
-          )}
-          <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-50 sm:text-[28px]">
+    <section id={id} className={`relative scroll-mt-24 overflow-hidden px-4 py-16 sm:px-6 sm:py-24 ${className}`}>
+      <span className="signal-rule" aria-hidden style={{ animationDelay: `${-(n * 2.3)}s` }} />
+      <SectionGlow tone={tone} side={side} />
+      <div className="shell relative">
+        <Reveal className="max-w-3xl">
+          <div className="flex items-center gap-3">
+            {index && <span className="font-mono text-[11px] tabular-nums text-slate-600">{index}</span>}
+            {eyebrow && (
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-signal-live">{eyebrow}</p>
+            )}
+          </div>
+          <DrawLine className="mt-3 w-16 bg-signal-live/60" />
+          <h2 className="mt-5 text-balance text-[26px] font-semibold leading-[1.15] tracking-tight text-slate-50 sm:text-[34px]">
             {title}
           </h2>
-          {lede && <p className="mt-3 text-pretty text-[15px] leading-relaxed text-slate-400">{lede}</p>}
-        </div>
-        <div className="mt-8">{children}</div>
+          {lede && <p className="mt-4 text-pretty text-[15.5px] leading-relaxed text-slate-400">{lede}</p>}
+        </Reveal>
+        <div className="mt-10 sm:mt-12">{children}</div>
       </div>
     </section>
   )
